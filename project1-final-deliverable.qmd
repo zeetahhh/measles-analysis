@@ -32,9 +32,11 @@ cases_year <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience
 meta_df <- read_csv("https://raw.githubusercontent.com/amandaadong/project1/main/metadf.csv")
 ```
 
-## Has the total number of reported measles cases increased or decreased over time globally?
+## Research Question 1: Has the total number of reported measles cases increased or decreased over time globally?
 
 To answer this question, we first needed to determine how each country's total number of measles cases was changing year-by-year. To do this, we compared each sequential year and categorized the change as declining (if the previous year had more cases), surging (if the previous year had less cases), and stable (if cases stayed relatively the same).
+
+## Data Summaries and Visualizations
 
 ```{r}
 trend_label <- function(current, previous) {
@@ -231,7 +233,7 @@ ggplot(plot_long, aes(x = year, y = proportion, fill = method)) +
 ```
 From 2012-2025, the clinical method for measles detection is the most commonly used method. The lab confirmed method tends to have a gradual increase over the years with around 25-30% in 2014-2919 and increasing to 40-50% by 2023-2025. For the epi-linked method, its trend is stable with a huge spike in 2019, with epi-linked cases increasing to 50% that year. Again, in 2020-2021, the proportions deviate likely due to COVID-19 affecting the methods of detection for measles cases. Lab confirmed method starts to become more of a feasible method. 
 
-## Is there an association between a country's air quality and number of measles cases?
+## Research Question 2: Is there an association between a country's air quality and number of measles cases?
 
 
 ```{r}
