@@ -1,0 +1,209 @@
+---
+title: "Measles Global Analysis"
+format:
+  dashboard:
+    orientation: columns
+    embed-resources: true
+---
+
+```{r}
+#| label: packages-setup-and-load-data
+#| message: false
+#| warning: false
+library(httr)
+library(tidyjson)
+library(jsonlite)
+library(tidyverse)
+library(stringr)
+library(gt)
+library(paletteer)
+library(ggridges)
+library(broom)
+
+cases_month <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_month.csv')
+cases_year  <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_year.csv')
+meta_df     <- read_csv("https://raw.githubusercontent.com/amandaadong/project1/main/metadf.csv")
+```
+
+```{r}
+#| label: compute-value-box-values
+#| message: false
+#| warning: false
+
+# --- RQ1 value box inputs ---
+# TODO: Replace column names with actual names from cases_year
+# yearly_totals  <- cases_year |>
+#   group_by(year) |>
+#   summarise(total = sum(cases, na.rm = TRUE))
+#
+# highest_year   <- yearly_totals |> slice_max(total, n = 1)
+# lowest_year    <- yearly_totals |> slice_min(total, n = 1)
+# max_pct_change <- yearly_totals |>
+#   mutate(pct_change = (total - lag(total)) / lag(total) * 100) |>
+#   slice_max(abs(pct_change), n = 1) |>
+#   pull(pct_change)
+
+# --- RQ2 regression inputs ---
+# TODO: Replace aqi / country column names with actual names from meta_df
+# rq2_df <- meta_df |>
+#   left_join(
+#     cases_year |>
+#       group_by(country) |>
+#       summarise(avg_cases = mean(cases, na.rm = TRUE)),
+#     by = "country"
+#   ) |>
+#   mutate(log_cases = log10(avg_cases)) |>
+#   filter(!is.na(aqi), !is.na(log_cases))
+#
+# lm_fit  <- lm(log_cases ~ aqi, data = rq2_df)
+# lm_sum  <- summary(lm_fit)
+# lm_coef <- tidy(lm_fit, conf.int = TRUE)
+#
+# p_value <- lm_sum$coefficients["aqi", "Pr(>|t|)"]
+# t_value <- lm_sum$coefficients["aqi", "t value"]
+# ci_low  <- lm_coef |> filter(term == "aqi") |> pull(conf.low)
+# ci_high <- lm_coef |> filter(term == "aqi") |> pull(conf.high)
+#
+# --- RQ2 AQI subsets for tables ---
+# top10_aqi    <- rq2_df |> slice_max(aqi, n = 10)
+# bottom10_aqi <- rq2_df |> slice_min(aqi, n = 10)
+#
+# --- RQ2 AQI quartiles for Figure 4 ---
+# rq2_df <- rq2_df |>
+#   mutate(aqi_quartile = ntile(aqi, 4) |>
+#            factor(labels = c("Q1 (Low AQI)", "Q2", "Q3", "Q4 (High AQI)")))
+```
+
+# RQ1: Global Trends Over Time {orientation="columns"}
+
+## Column - Table {width="45%"}
+
+### Row - Table 1
+
+::: {.card title="Table 1: Global Measles Cases by Year"}
+```{r}
+#| label: gt-table-rq1
+# --code-- Insert table 1 of global cases by year
+```
+:::
+
+### Row - Table 2
+
+::: {.card title="Table 2: Detection Method Proportions"}
+```{r}
+#| label: gt-table-detection
+# --code-- Insert table 2 of detection method prop
+```
+:::
+
+## Column - Value Boxes & Chart {width="55%"}
+
+### Row - RQ1 Value Boxes {height="25%"}
+
+::: {.valuebox icon="arrow-up-circle" color="danger"}
+Highest single-year cases
+
+`r "TODO: paste(highest_year$year, '—', format(highest_year$total, big.mark=','))"`
+:::
+
+::: {.valuebox icon="arrow-down-circle" color="success"}
+Lowest single-year cases
+
+`r "TODO: paste(lowest_year$year, '—', format(lowest_year$total, big.mark=','))"`
+:::
+
+::: {.valuebox icon="percent" color="warning"}
+Largest year-over-year % change
+
+`r "TODO: paste0(round(max_pct_change, 1), '%')"`
+:::
+
+### Row - Figure 1 {height="37%"}
+
+::: {.card title="Figure 1: Global Measles Cases Over Time"}
+```{r}
+#| label: rq1-trend-chart
+# --code-- lollipop figure 1: Global Measles Cases Over Time
+```
+:::
+
+### Row - Figure 2 {height="38%"}
+
+::: {.card title="Figure 2: Detection Method by Year"}
+```{r}
+#| label: rq1-detection-chart
+# --code-- stacked bar charts Figure 2: Detection Method by Year
+```
+:::
+
+# RQ2: Air Quality & Measles Cases {orientation="columns"}
+
+## Column - Figures {width="50%"}
+
+### Row - Figure 3 {height="50%"}
+
+::: {.card title="Figure 3: Linear Regression — AQI vs. log10 Average Measles Cases"}
+```{r}
+#| label: rq2-lm-scatter
+# --code-- Figure 3: Linear Regression between Air Quality Index and log10 transformed Average Measles Cases by Country
+```
+:::
+
+### Row - Figure 4 {height="50%"}
+
+::: {.card title="Figure 4: Measles Distribution by AQI Quartile"}
+```{r}
+#| label: rq2-aqi-quartile
+# --code-- Figure 4: Measles Distribution by AQI Quartile
+```
+:::
+
+## Column - Table, Value Boxes & Subset Tables {width="50%"}
+
+### Row - Table 5 {height="20%"}
+
+::: {.card title="Table 5: Linear Regression Coefficients"}
+```{r}
+#| label: rq2-lm-table
+# --code-- Table 4: Linear Regression Coefficients
+```
+:::
+
+### Row - RQ2 Value Boxes {height="15%"}
+
+::: {.valuebox icon="calculator" color="info"}
+p-value (AQI slope)
+
+`r "TODO: format(p_value, digits = 4, scientific = TRUE)"`
+:::
+
+::: {.valuebox icon="bar-chart" color="warning"}
+t-value (AQI slope)
+
+`r "TODO: round(t_value, 3)"`
+:::
+
+::: {.valuebox icon="arrows-expand" color="secondary"}
+95% Confidence Interval
+
+`r "TODO: paste0('[', round(ci_low, 3), ', ', round(ci_high, 3), ']')"`
+:::
+
+### Row - AQI Subset Tables {height="65%"}
+
+::: {.panel-tabset}
+
+## Top 10 — Highest Avg AQI
+```{r}
+#| label: rq2-top10-aqi
+#--code-- gt table of top 10 countries by average AQI using Table 3: AQI vs. Average Measles Cases (unhealthy air quality rating)
+
+```
+
+## Bottom 10 — Lowest Avg AQI
+```{r}
+#| label: rq2-bottom10-aqi
+#--code-- gt table of bottom 10 countries by average AQI using Table 3: AQI vs. Average Measles Cases (best air quality rating)
+```
+
+:::
