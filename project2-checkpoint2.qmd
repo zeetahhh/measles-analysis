@@ -274,5 +274,5 @@ ggplot(plot_long, aes(x = year, y = proportion, fill = method)) +
 # Madagascar Data
 
 ::: {.card title="Why Madagascar?"}
-We selected Madagascar because it had a dramatic change of measles cases in a single year from the global measles data set. In 2012-2017, there were less than 100 cases per year, but in 2018-2019, cases in a single year spiked up to 213,291 cases and went down to below 100 cases after 2019. 
+We selected Madagascar because it had a dramatic change of measles cases in a single year from the global measles data set. In 2012-2017, there were less than 100 cases per year, but in 2018-2019, cases in a single year spiked up to over **213,000** cases, nearly a <mark>1700% increase</mark> from the previous year. This spike is then followed by a decrease which follows the 2012-2017 trend. 
 :::
