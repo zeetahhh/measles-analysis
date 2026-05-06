@@ -33,56 +33,6 @@ cases_year  <- readr::read_csv('https://raw.githubusercontent.com/rfordatascienc
 meta_df     <- read_csv("https://raw.githubusercontent.com/amandaadong/project1/main/metadf.csv")
 ```
 
-```{r}
-#| label: compute-value-box-values
-#| message: false
-#| warning: false
-
-# --- RQ1 value box inputs ---
-# TODO: Replace column names with actual names from cases_year
-# yearly_totals  <- cases_year |>
-#   group_by(year) |>
-#   summarise(total = sum(cases, na.rm = TRUE))
-#
-# highest_year   <- yearly_totals |> slice_max(total, n = 1)
-# lowest_year    <- yearly_totals |> slice_min(total, n = 1)
-# max_pct_change <- yearly_totals |>
-#   mutate(pct_change = (total - lag(total)) / lag(total) * 100) |>
-#   slice_max(abs(pct_change), n = 1) |>
-#   pull(pct_change)
-
-# --- RQ2 regression inputs ---
-# TODO: Replace aqi / country column names with actual names from meta_df
-# rq2_df <- meta_df |>
-#   left_join(
-#     cases_year |>
-#       group_by(country) |>
-#       summarise(avg_cases = mean(cases, na.rm = TRUE)),
-#     by = "country"
-#   ) |>
-#   mutate(log_cases = log10(avg_cases)) |>
-#   filter(!is.na(aqi), !is.na(log_cases))
-#
-# lm_fit  <- lm(log_cases ~ aqi, data = rq2_df)
-# lm_sum  <- summary(lm_fit)
-# lm_coef <- tidy(lm_fit, conf.int = TRUE)
-#
-# p_value <- lm_sum$coefficients["aqi", "Pr(>|t|)"]
-# t_value <- lm_sum$coefficients["aqi", "t value"]
-# ci_low  <- lm_coef |> filter(term == "aqi") |> pull(conf.low)
-# ci_high <- lm_coef |> filter(term == "aqi") |> pull(conf.high)
-#
-# --- RQ2 AQI subsets for tables ---
-# top10_aqi    <- rq2_df |> slice_max(aqi, n = 10)
-# bottom10_aqi <- rq2_df |> slice_min(aqi, n = 10)
-#
-# --- RQ2 AQI quartiles for Figure 4 ---
-# rq2_df <- rq2_df |>
-#   mutate(aqi_quartile = ntile(aqi, 4) |>
-#            factor(labels = c("Q1 (Low AQI)", "Q2", "Q3", "Q4 (High AQI)")))
-```
-
-
 ## Column - Table {width="45%"}
 
 ### Row - Table 1
