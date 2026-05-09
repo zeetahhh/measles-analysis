@@ -34,10 +34,10 @@ library(leaflet)
 
 cases_month <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_month.csv')
 cases_year <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_year.csv')
-meta_df     <- read_csv("https://raw.githubusercontent.com/amandaadong/project1/main/metadf.csv")
+meta_df <- read_csv("https://raw.githubusercontent.com/zeetahhh/measles-analysis/main/mg%20copy.csv")
 ```
 
-## Column - Table {width="45%"}
+## Column - Summary Table {width="45%"}
 
 ### Row - Table 1
 
@@ -225,7 +225,7 @@ yearly_totals  <- cases_year |>
 `{r} str_c(max_pct_change, "%")`
 :::
 
-### Row
+### Row - Charts
 ::: {.panel-tabset}
 ## Figure 1 {height="37%"}
 
@@ -271,55 +271,17 @@ ggplot(plot_long, aes(x = year, y = proportion, fill = method)) +
                                  lab_prop = "Lab Confirmed"))
 ```
 :::
+
 :::
 
-# Madagascar Data
+### Row - Animated Global Trend
 
-## Column {width="30%"}
-
-::: {.card title="Why Madagascar?"}
-We selected Madagascar because it had a dramatic change of measles cases in a single year from the global measles data set. In 2012-2017, there were less than 100 cases per year, but in 2018-2019, cases in a single year spiked up to over **213,000** cases, nearly a <mark>1700% increase</mark> from the previous year. This spike is then followed by a decrease which follows the 2012-2017 trend. 
-:::
-
-::: {.card title="Madagascar Measles Cases by Year"}
-```{r}
-#| label: mad-table
-trend_label <- function(current, previous) {
-  pct_change <- (current - previous) / previous * 100
-  case_when(
-    pct_change < -20 ~ "declining",
-    pct_change >  20 ~ "surging",
-    .default = "stable"
-  )
-}
-
-yearly_summary <- cases_year |>
-  group_by(year) |>
-  summarise(
-    total_cases = sum(measles_total, na.rm = TRUE),
-    n_countries = n_distinct(country),
-    .groups = "drop"
-  ) |>
-  arrange(year) |>
-  mutate(
-    prev_total = lag(total_cases),
-    pct_change = round((total_cases - prev_total) / prev_total * 100, 1),
-    trend = trend_label(total_cases, prev_total)
-  ) |>
-  select(year, total_cases, n_countries, pct_change, trend)
-yearly_summary$year <- as.integer(yearly_summary$year)
-```
-:::
-
-## Column {width="70%"}
-
-### Row {height="55%"}
-
-::: {.card title="Figure 3: Madagascar Measles Cases Over Time (Animated)"}
+::: {.card title="Figure 3: Global Measles Cases Over Time (Animated)"}
 ```{r}
 #| warning: false
 #| message: false
 #| label: mad-animated
+#| fig.show: 'animate'
 ggplot(data = yearly_summary, aes(x = year, y = total_cases / 1000, group = 1)) +
   geom_line() +
   geom_point() +
@@ -332,61 +294,63 @@ ggplot(data = yearly_summary, aes(x = year, y = total_cases / 1000, group = 1)) 
 ```
 :::
 
-### Row {height="45%"}
 
-::: {.card title="Figure 4: Regional Measles Burden During 2018–2019 Outbreak"}
-```{r}
-madagascar <- cases_year |>
-  filter(country == "Madagascar")
-```
+# Madagascar Data
 
+## Column - Country Context {width="30%"} 
+
+::: {.card title="Why Madagascar?"}
+Madagascar is an intriging statistical outlier in the global measles data set. In 2012–2017, there were fewer than 100 cases per year (stable), but in 2018–2019 cases spiked to over **213,000** — nearly a <mark>1,700% increase</mark>. Following this peak, cases declined dramatically to fewer than 100 cases.
+:::
+
+## Column - Madagascar Visualizations {width="70%"}
+
+### Row - Interactive Maps {height="50%"}
+
+::: {.panel-tabset}
+## Figure 5: All Cities
+
+::: {.card title="Figure 5: Madagascar City Populations"}
 ```{r}
 #| warning: false
 #| message: false
-ggplot(data = madagascar, aes(x = year, y = total_population / 1000000, group = 1)) +
-  geom_line() +
-  geom_point() +
-  scale_y_continuous(breaks = seq(20, 35, by = 5)) +
-  scale_x_continuous(breaks = seq(2012, 2025, by = 2)) +
-  labs(title = "Madagascar's Population by Year") +
-  xlab("Year (2012 - 2025)") +
-  ylab("Population (in Millions)") +
-  transition_reveal(year) +
-  theme_bw()
-  
-```
-
-```{r}
 madagascarLat <- -18.77
 madagascarLon <- 46.85
+madagascar_cities <- meta_df
 
-pal <- colorNumeric(palette = "plasma", domain = madagascar$population)
+pal <- colorNumeric(palette = "plasma", domain = madagascar_cities$population)
 
-# First Graph with every city in Madagascar
 leaflet() %>%
   setView(lat = madagascarLat, lng = madagascarLon, zoom = 5) %>%
   addProviderTiles("Esri.WorldStreetMap") %>%
   addCircleMarkers(
-    data = madagascar,
+    data = madagascar_cities,
+    lat = ~lat,
+    lng = ~lng,
     radius = 6,
-    fillColor = ~pal(population),   
+    fillColor = ~pal(population),
     fillOpacity = 0.8,
-    color = "white",              
-    weight = 1,                 
-    popup = ~paste("Population:", scales::comma(population))
+    color = "white",
+    weight = 1,
+    popup = ~paste0("<b>", city, "</b><br>Population: ", scales::comma(population))
   ) %>%
   addLegend(
     pal = pal,
-    values = madagascar$population,
+    values = madagascar_cities$population,
     title = "Population",
     position = "bottomright"
   )
 ```
+:::
 
+## Figure 6: Excluding Capital
 
+::: {.card title="Figure 6: Madagascar City Populations (Excluding Antananarivo)"}
 ```{r}
-# Second Graph exlcuding the Capital which is an extreme outlier
-madagascarWithoutAnatananarivo <- madagascar[-1,]
+#| warning: false
+#| message: false
+madagascarWithoutAnatananarivo <- madagascar_cities |>
+  filter(city != "Antananarivo")
 
 pal2 <- colorNumeric(palette = "plasma", domain = madagascarWithoutAnatananarivo$population)
 
@@ -395,12 +359,14 @@ leaflet() %>%
   addProviderTiles("Esri.WorldStreetMap") %>%
   addCircleMarkers(
     data = madagascarWithoutAnatananarivo,
+    lat = ~lat,
+    lng = ~lng,
     radius = 6,
-    fillColor = ~pal2(population),   
+    fillColor = ~pal2(population),
     fillOpacity = 0.8,
-    color = "white",              
-    weight = 1,                 
-    popup = ~paste("Population:", scales::comma(population))
+    color = "white",
+    weight = 1,
+    popup = ~paste0("<b>", city, "</b><br>Population: ", scales::comma(population))
   ) %>%
   addLegend(
     pal = pal2,
@@ -409,5 +375,6 @@ leaflet() %>%
     position = "bottomright"
   )
 ```
+:::
 
-
+:::
