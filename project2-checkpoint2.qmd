@@ -35,6 +35,15 @@ library(leaflet)
 cases_month <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_month.csv')
 cases_year <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_year.csv')
 meta_df <- read_csv("https://raw.githubusercontent.com/zeetahhh/measles-analysis/main/mg%20copy.csv")
+
+trend_label <- function(current, previous) {
+  pct_change <- (current - previous) / previous * 100
+  case_when(
+    pct_change < -20 ~ "declining",
+    pct_change >  20 ~ "surging",
+    .default = "stable"
+  )
+}
 ```
 
 ## Column - Summary Table {width="45%"}
@@ -45,14 +54,6 @@ meta_df <- read_csv("https://raw.githubusercontent.com/zeetahhh/measles-analysis
 ```{r}
 #| label: gt-table-rq1
 # --code-- Insert table 1 of global cases by year
-trend_label <- function(current, previous) {
-  pct_change <- (current - previous) / previous * 100
-  case_when(
-    pct_change < -20 ~ "declining",
-    pct_change >  20 ~ "surging",
-    .default = "stable"
-  )
-}
 
 yearly_summary <- cases_year |>
   group_by(year) |>
