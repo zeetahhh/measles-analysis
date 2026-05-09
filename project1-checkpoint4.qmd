@@ -188,3 +188,22 @@ wide_model |>
             )) |>
   tab_caption(caption = "Table 1. Linear Regression coefficients for the association between measles cases and AQI.")
 ```
+
+
+
+```{r}
+meta_df |>
+  filter(!is.na(total_aqi), !is.na(measles_total)) |>
+  group_by(country, total_aqi) |>
+  summarise(avg_cases = mean(measles_total, na.rm = TRUE)) |>
+  ggplot(aes(x = total_aqi, y = avg_cases + 1)) +
+  geom_hex(bins = 15) +
+  scale_y_log10(labels = scales::comma) +
+  scale_fill_gradient(low = "#E6F1FA", high = "#0F6E56", name = "Countries") +
+  labs(
+    x = "Air Quality Index",
+    y = "Avg annual measles cases (log scale)"
+  ) +
+  theme_minimal()
+```
+

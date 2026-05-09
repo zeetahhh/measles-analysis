@@ -15,8 +15,6 @@ cases_month <- readr::read_csv('https://raw.githubusercontent.com/rfordatascienc
 cases_year <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_year.csv')
 ```
 
-Amanda Dong
-
 ## Using Existing Columns + Custom Function
 
 ### **Research question:** Do the number of measles cases change depending on the time of year?
@@ -47,9 +45,7 @@ measles_by_month <- measles_by_month |>
 
 According to our resulting summaries, it appears the number of measles cases tends to be the most during the beginning of the year (January - March), while the number of cases seems to be the lowest during the ansition between summer and fall (August - October). However, it's important to keep in mind that these are summaries over the last 9 years, and include cases all over the world (and seasons/environment are different depending on location).
 
-Aryan Ajith Nair
-
-### Modified Columns + Custom Function 
+### Modified Columns + Custom Function
 
 ### **Research question:** Has the total number of reported measles cases increased or decreased over time globally?
 
@@ -84,8 +80,6 @@ print(yearly_summary)
 ### **Conclusion**
 
 According to my summary table, global reported measles cases show an overall declining trend across the years in the dataset, with the most years labeled as declining or stable. Isolated surging years are visible. This points to a periodic resurgence likely tied to drops in vaccination coverage or large outbreaks in highly populated countries.
-
-Natalie Cartwright
 
 ## Using Existing Columns + Iteration for Summary Statistics
 
@@ -122,8 +116,6 @@ sum_prop
 ### **Conclusion**
 
 According to my summary table, the method of confirming measles cases by the lab results in finding the most measles cases. Around 79% of cases of measles were found by confirming it in the lab.
-
-Zita Tam
 
 ## **Research Question: Which country and region have the most measles and rubella cases combined?**
 
