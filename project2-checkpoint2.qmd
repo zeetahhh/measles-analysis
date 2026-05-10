@@ -31,6 +31,7 @@ library(ggridges)
 library(broom)
 library(gganimate)
 library(leaflet)
+library(gifski)
 
 cases_month <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_month.csv')
 cases_year <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_year.csv')
@@ -228,7 +229,7 @@ yearly_totals  <- cases_year |>
 
 ### Row - Charts
 ::: {.panel-tabset}
-## Figure 1 {height="37%"}
+## Global Trend {height="50%"}
 
 ::: {.card title="Figure 1: Global Measles Cases Over Time"}
 ```{r}
@@ -238,8 +239,7 @@ ggplot(yearly_summary, aes(x = year, xend = year, y = 0, yend = pct_change,
                            color = trend)) +
   geom_segment(size = 1.3, alpha = 0.9) +
   geom_point(aes(y = pct_change)) +
-  theme_minimal() +
-  theme(panel.border = element_blank()) +
+  theme_bw() +
   scale_x_continuous(breaks = yearly_summary$year) +
   scale_y_continuous(breaks = seq(-100, 200, by = 50)) +
   geom_hline(yintercept = 0, linetype = "dashed") +
@@ -251,7 +251,7 @@ ggplot(yearly_summary, aes(x = year, xend = year, y = 0, yend = pct_change,
 ```
 :::
 
-## Figure 2 {height="38%"}
+## Detection Method {height="38%"}
 
 ::: {.card title="Figure 2: Detection Method by Year"}
 ```{r}
@@ -261,7 +261,7 @@ ggplot(plot_long, aes(x = year, y = proportion, fill = method)) +
   geom_bar(position = "fill", stat = "identity") +
   scale_x_continuous(breaks = plot_long$year) +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 8)) +
+  theme(axis.text.x = element_text(size = 10)) +
   labs(title = "Measles Detection Method by Year",
        subtitle = "Clinical vs. Epi-linked vs. Lab Cases") +
   xlab("Year") +
@@ -275,7 +275,7 @@ ggplot(plot_long, aes(x = year, y = proportion, fill = method)) +
 
 :::
 
-### Row - Animated Global Trend
+### Row - Animated Global Trend {height="50%"}
 
 ::: {.card title="Figure 3: Global Measles Cases Over Time (Animated)"}
 ```{r}
@@ -301,12 +301,12 @@ ggplot(data = yearly_summary, aes(x = year, y = total_cases / 1000, group = 1)) 
 ## Column - Country Context {width="30%"} 
 
 ::: {.card title="Why Madagascar?"}
-Madagascar is an intriging statistical outlier in the global measles data set. In 2012–2017, there were fewer than 100 cases per year (stable), but in 2018–2019 cases spiked to over **213,000** — nearly a <mark>1,700% increase</mark>. Following this peak, cases declined dramatically to fewer than 100 cases.
+Madagascar is an intriguing statistical outlier in the global measles data set. In 2012–2017, there were fewer than 100 cases per year (stable), but in 2018–2019 cases spiked to over **213,000** — nearly a <mark>1,700% increase</mark>. Following this peak, cases declined dramatically to fewer than 100 cases.
 :::
 
 ## Column - Madagascar Visualizations {width="70%"}
 
-### Row - Animated Map {height="50%"}
+### Row - Figure 4- Animated Map {height="50%"}
 ::: {.card title="Figure 4: Madagascar Measles Cases Over Time"}
 ```{r}
 #| label: mad-plotly
@@ -325,9 +325,14 @@ ggplot(data = madagascar, aes(x = year, y = total_population / 1000000, group = 
   transition_reveal(year) +
   theme_bw()
 ```
+:::
+
+
+### Row - Interactive Maps {height="50%"}
 
 ::: {.panel-tabset}
-## Figure 5: All Cities
+
+## All Cities {height="50%"}
 
 ::: {.card title="Figure 5: Madagascar City Populations"}
 ```{r}
@@ -362,7 +367,8 @@ leaflet() %>%
 ```
 :::
 
-## Figure 6: Excluding Capital
+
+## Excluding Capital
 
 ::: {.card title="Figure 6: Madagascar City Populations (Excluding Antananarivo)"}
 ```{r}
