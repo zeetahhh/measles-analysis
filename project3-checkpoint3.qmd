@@ -41,10 +41,11 @@ library(ggridges)
 library(broom)
 library(gganimate)
 library(leaflet)
+library(shiny)
 
 cases_month <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_month.csv')
 cases_year <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-24/cases_year.csv')
-meta_df <- read_csv("https://raw.githubusercontent.com/zeetahhh/measles-analysis/main/mg%20copy.csv")
+#meta_df <- readr::read_csv("https://raw.githubusercontent.com/zeetahhh/measles-analysis/main/mg%20copy.csv")
 
 trend_label <- function(current, previous) {
   pct_change <- (current - previous) / previous * 100
@@ -204,114 +205,84 @@ yearly_totals  <- cases_year |>
 
 ::: {.card title="Table 2: Detection Method Proportions" fill="false"}
 ```{r}
-#| label: gt-table-detection
-# --code-- Insert table 2 of detection method prop
-methods <- list(clin_prop = "clinical", 
-                epi_prop = "epi",
-                lab_prop = "lab")
+#| label: detection-ui
+
+library(shiny)
+library(gt)
+
+checkboxGroupInput(
+  inputId = "detection_types",
+  label = "Select Detection Methods:",
+  choices = c("Clinical" = "clin_prop",
+              "Epi-Linked" = "epi_prop",
+              "Lab Confirmed" = "lab_prop"),
+  selected = c("clin_prop", "epi_prop", "lab_prop")
+)
+gt_output("detection_table")
 ```
 
 ```{r}
+#| label: detection-server
+#| context: server
+
+library(tidyverse)
+library(gt)
+
 cases_filtered <- cases_year %>% filter(!is.na(measles_clinical),
                                      !is.na(measles_total),
                                      !is.na(measles_epi_linked),
                                      !is.na(measles_lab_confirmed))
-yearly_totals <- cases_filtered %>% group_by(year) %>%
+
+yearly_totals_det <- cases_filtered %>% group_by(year) %>%
   summarise(
     total = sum(measles_total),
     clinical = sum(measles_clinical),
     epi = sum(measles_epi_linked),
     lab = sum(measles_lab_confirmed),
-    .groups = "drop")
+    .groups = "drop") %>%
+  mutate(
+    clin_prop = clinical / total,
+    epi_prop = epi / total,
+    lab_prop = lab / total
+  ) %>%
+  select(year, clin_prop, epi_prop, lab_prop)
 
-props <- function(col) {
-  yearly_totals[[col]] / yearly_totals$total
-}
 
-propsbyyear <- bind_cols(
-  select(yearly_totals, year),
-  map_dfc(methods, props)
-)
-
-plot_long <- propsbyyear %>%
-  pivot_longer(cols = c(clin_prop, epi_prop, lab_prop),
-               names_to = "method",
-               values_to = "proportion")
-
-#Check boxes to select detection method to use
-
-ui <- fluidPage(
-  titlePanel("Cases by Detection Method"),
-  sidebarLayout(
-    sidebarPanel(
-      checkboxGroupInput(
-        inputId = "detection_types",
-        label = "Select Detection Methods:",
-        choices = c("Clinical" = "clin_prop",
-                    "Epi-Linked" = "epi_prop",
-                    "Lab Confirmed" = "lab_prop"),
-        selected = c("clin_prop", "epi_prop", "lab_prop")  # all checked by default
-      )
-    ),
-    mainPanel(
-      gt_output("detection_table")
-    )
-  )
-)
-
-server <- function(input, output) {
 output$detection_table <- render_gt({
-    req(input$detection_types)
-    
-    selected_cols <- input$detection_types
-    table_data <- propsbyyear |> select(year, all_of(selected_cols))
-    
-    col_labels <- list(year = md("**Year**"))
-    if ("clin_prop" %in% selected_cols) col_labels$clin_prop <- md("**Clinical**")
-    if ("epi_prop"  %in% selected_cols) col_labels$epi_prop  <- md("**Epi-Linked**")
-    if ("lab_prop"  %in% selected_cols) col_labels$lab_prop  <- md("**Lab Confirmed**")
-    
-    tbl <- table_data |>
-      gt() |>
-      cols_label(.list = col_labels) |>
-      fmt_percent(columns = all_of(selected_cols), decimals = 1) |>
-      tab_options(
-        table.width = pct(100),
-        column_labels.font.weight = "bold",
-        heading.align = "left",
-        table.border.top.color = "black",
-        row.striping.include_table_body = TRUE
-      )
-    
-    if (length(selected_cols) > 1) {
-      tbl <- tbl |>
-        tab_spanner(
-          label = md("**Proportion of Total Cases by Detection Method**"),
-          columns = all_of(selected_cols)
-        ) |>
-        tab_style(
-          style = cell_text(weight = "bold"),
-          locations = cells_column_spanners()
-        )
-    }
-    
-    for (col in selected_cols) {
-      tbl <- tbl |>
-        tab_style(
-          style = cell_fill(color = "#D4EFDF"),
-          locations = cells_body(
-            columns = all_of(col),
-            rows = table_data[[col]] == do.call(pmax, c(table_data[selected_cols], na.rm = TRUE))
-          )
-        )
-    }
-    
-    tbl
-  })
-}
+  req(input$detection_types)
+  selected_cols <- input$detection_types
+  table_data <- yearly_totals_det |> select(year, all_of(selected_cols))
 
-shinyApp(ui, server)
+  col_labels <- list(year = md("**Year**"))
+  if ("clin_prop" %in% selected_cols) col_labels$clin_prop <- md("**Clinical**")
+  if ("epi_prop"  %in% selected_cols) col_labels$epi_prop  <- md("**Epi-Linked**")
+  if ("lab_prop"  %in% selected_cols) col_labels$lab_prop  <- md("**Lab Confirmed**")
+
+  tbl <- table_data |>
+    gt() |>
+    cols_label(.list = col_labels) |>
+    fmt_percent(columns = all_of(selected_cols), decimals = 1) |>
+    tab_options(table.width = pct(100), column_labels.font.weight = "bold",
+                heading.align = "left", table.border.top.color = "black",
+                row.striping.include_table_body = TRUE)
+
+  if (length(selected_cols) > 1) {
+    tbl <- tbl |>
+      tab_spanner(label = md("**Proportion of Total Cases by Detection Method**"),
+                  columns = all_of(selected_cols)) |>
+      tab_style(style = cell_text(weight = "bold"), locations = cells_column_spanners())
+  }
+
+  for (col in selected_cols) {
+    tbl <- tbl |>
+      tab_style(style = cell_fill(color = "#D4EFDF"),
+                locations = cells_body(columns = all_of(col),
+                  rows = table_data[[col]] == do.call(pmax, c(table_data[selected_cols], na.rm = TRUE))))
+  }
+  tbl
+})
 ```
 
+:::
 
 # Madagascar
